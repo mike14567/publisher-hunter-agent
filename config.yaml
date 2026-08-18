@@ -1,0 +1,43 @@
+# Publisher Hunter Agent — config
+# Add/remove source pages any time; the agent re-scrapes these daily
+# looking for NEW domains it hasn't seen before.
+
+sources:
+  streaming:
+    - https://www.firesticktricks.com/free-movie-streaming-sites.html
+    - https://troypoint.com/free-online-movie-streaming-sites/
+    - https://www.bestfreestreaming.org/
+    - https://www.mobileappdaily.com/products/free-movie-streaming-sites
+
+  apk_mods:
+    - https://moddroid.com/popular/
+    - https://www.seomadtech.com/mod-apk-sites/
+    - https://apps2app.com/
+    - https://naijaknowhow.net/mod-apk-download-websites/
+
+  converters_downloaders:
+    - https://www.amoyshare.com/blog/free-video-download-sites.html
+    - https://techcult.com/best-free-online-video-downloader/
+    - https://filmora.wondershare.com/video-editing-tips/free-online-url-video-downloaders.html
+
+  file_sharing:
+    - https://www.techradar.com/best/best-file-sharing-services
+
+# Domains that are never real leads (app stores, your own tools, obvious noise)
+exclude_domains:
+  - google.com
+  - apple.com
+  - play.google.com
+  - youtube.com
+  - facebook.com
+  - twitter.com
+  - x.com
+  - instagram.com
+  - wikipedia.org
+  - github.com
+
+email:
+  from: "${EMAIL_FROM}"      # set via GitHub secret
+  to: "${EMAIL_TO}"          # set via GitHub secret
+  smtp_host: "smtp.gmail.com"
+  smtp_port: 587
