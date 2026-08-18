@@ -1,4 +1,5 @@
-"""Daily entrypoint: scrape sources, diff against seen state, email new leads."""
+"""Daily entrypoint: scrape sources, diff against seen state, look up contact
+emails for new domains, and email a CSV report."""
 from __future__ import annotations
 
 import logging
@@ -8,7 +9,8 @@ import yaml
 
 from src.scraper import fetch_candidates
 from src.state import SeenStore
-from src.reporter import build_html, send_email
+from src.contact_finder import find_contact_email
+from src.reporter import send_email
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -22,20 +24,25 @@ def main() -> None:
     exclude = set(config.get("exclude_domains", []))
     store = SeenStore(STATE_PATH)
 
-    new_candidates = []
+    new_rows: list[dict] = []
     for category, urls in config["sources"].items():
         for source_url in urls:
             for candidate in fetch_candidates(category, source_url, exclude):
-                if store.is_new(candidate.domain):
-                    new_candidates.append(candidate)
-                    store.mark_seen(candidate.domain)
+                if not store.is_new(candidate.domain):
+                    continue
+                store.mark_seen(candidate.domain)
 
-    logger.info("Found %d new candidate domains", len(new_candidates))
+                contact = find_contact_email(candidate.domain)
+                new_rows.append({
+                    "domain": candidate.domain,
+                    "category": candidate.category,
+                    "source_url": candidate.source_url,
+                    "contact_email": contact,
+                })
+                logger.info("New: %s (contact: %s)", candidate.domain, contact or "none found")
 
-    html = build_html(new_candidates)
-    subject = f"Publisher Hunter: {len(new_candidates)} new leads" if new_candidates else "Publisher Hunter: no new leads today"
-    send_email(html, subject)
-
+    logger.info("Found %d new candidate domains", len(new_rows))
+    send_email(new_rows)
     store.save()
 
 
